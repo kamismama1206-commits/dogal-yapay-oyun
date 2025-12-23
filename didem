@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doğal mı, Yapay mı?</title>
+    <style>
+        body { font-family: 'Verdana', sans-serif; background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        .game-container { background-color: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); text-align: center; width: 90%; max-width: 500px; }
+        h2 { color: #2d3436; margin-bottom: 10px; }
+        .score-board { font-size: 1.2em; color: #636e72; margin-bottom: 20px; display: flex; justify-content: space-between; padding: 0 20px; }
+        .question-card { background-color: #f1f2f6; border: 3px solid #dfe6e9; border-radius: 15px; padding: 40px 20px; margin: 20px 0; font-size: 3em; transition: transform 0.3s; }
+        .question-text { display: block; font-size: 0.5em; margin-top: 10px; color: #2d3436; font-weight: bold; }
+        .btn-container { display: flex; gap: 15px; justify-content: center; }
+        .btn { flex: 1; padding: 15px; font-size: 1.1em; border: none; border-radius: 10px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-dogal { background-color: #00b894; box-shadow: 0 4px 0 #008f72; }
+        .btn-yapay { background-color: #fdcb6e; color: #444; box-shadow: 0 4px 0 #e1b12c; }
+        .feedback { margin-top: 15px; font-size: 1.2em; min-height: 30px; font-weight: bold; }
+        .correct { color: #00b894; } .wrong { color: #d63031; }
+        .animate { animation: popIn 0.3s ease-out; }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h2>Çevremizi Tanıyalım</h2>
+    <div class="score-board">
+        <span id="scoreText">Puan: 0</span>
+        <span id="questionCount">Soru: 1/10</span>
+    </div>
+    <div class="question-card" id="card">
+        <span id="emoji">🌲</span>
+        <span class="question-text" id="qText">Orman</span>
+    </div>
+    <div class="btn-container">
+        <button class="btn btn-dogal" onclick="checkAnswer('dogal')">Doğal Çevre 🍃</button>
+        <button class="btn btn-yapay" onclick="checkAnswer('yapay')">Yapay Çevre 🏗️</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+</div>
+
+<script>
+    const questions = [
+        { text: "Orman", type: "dogal", emoji: "🌲" },
+        { text: "Oyun Parkı", type: "yapay", emoji: "🎡" },
+        { text: "Göl", type: "dogal", emoji: "🌊" },
+        { text: "Okul Bahçesi", type: "yapay", emoji: "🏫" },
+        { text: "Deniz", type: "dogal", emoji: "🐬" },
+        { text: "Köprü", type: "yapay", emoji: "🌉" },
+        { text: "Mağara", type: "dogal", emoji: "🦇" },
+        { text: "Akvaryum", type: "yapay", emoji: "🐠" },
+        { text: "Peri Bacaları", type: "dogal", emoji: "🗿" },
+        { text: "Baraj", type: "yapay", emoji: "🧱" }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let shuffledQuestions = [];
+
+    function startGame() {
+        shuffledQuestions = questions.sort(function() { return 0.5 - Math.random() });
+        currentQuestionIndex = 0;
+        score = 0;
+        updateUI();
+    }
+
+    function updateUI() {
+        if (currentQuestionIndex >= questions.length) {
+            endGame();
+            return;
+        }
+        const currentQ = shuffledQuestions[currentQuestionIndex];
+        const card = document.getElementById('card');
+        
+        // Animasyon hilesi
+        card.classList.remove('animate');
+        void card.offsetWidth; 
+        card.classList.add('animate');
+
+        document.getElementById('emoji').innerText = currentQ.emoji;
+        document.getElementById('qText').innerText = currentQ.text;
+        document.getElementById('scoreText').innerText = "Puan: " + score;
+        document.getElementById('questionCount').innerText = "Soru: " + (currentQuestionIndex + 1) + "/10";
+        document.getElementById('feedback').innerText = "";
+        
+        // Butonları tekrar aktif et
+        const buttons = document.querySelectorAll('.btn');
+        for (let i = 0; i < buttons.length; i++) {
+            buttons[i].disabled = false;
+        }
+    }
+
+    function checkAnswer(userChoice) {
+        const correctType = shuffledQuestions[currentQuestionIndex].type;
+        const feedbackEl = document.getElementById('feedback');
+        
+        if (userChoice === correctType) {
+            score += 10;
+            feedbackEl.innerText = "Harika! Doğru bildin.";
+            feedbackEl.className = "feedback correct";
+        } else {
+            feedbackEl.innerText = "Dikkat et, bu diğer gruptaydı.";
+            feedbackEl.className = "feedback wrong";
+        }
+
+        currentQuestionIndex++;
+        
+        // Hızlı tıklamayı engelle
+        const buttons = document.querySelectorAll('.btn');
+        for (let i = 0; i < buttons.length; i++) {
+            buttons[i].disabled = true;
+        }
+
+        setTimeout(updateUI, 1000);
+    }
+
+    function endGame() {
+        document.querySelector('.game-container').innerHTML = "<h2>Oyun Bitti!</h2><div style='font-size: 3em; margin: 20px;'>🌟</div><h3>Toplam Puanın: " + score + "</h3><button class='btn btn-dogal' onclick='location.reload()'>Tekrar Oyna</button>";
+    }
+
+    // Oyunu başlat
+    startGame();
+</script>
+
+</body>
+</html>
